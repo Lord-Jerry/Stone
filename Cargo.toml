@@ -1,0 +1,8 @@
+[package]
+name = "afrilang"
+version = "0.1.0"
+authors = ["Lord Jerry <lovinjerry004@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+lexer = { path = "src/core/lexer/", version = "0.1.0" }
