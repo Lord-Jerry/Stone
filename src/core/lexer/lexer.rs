@@ -1,5 +1,7 @@
-//use Token;
+pub mod kinds;
+use kinds::{ TokenKind, Token };
 
+#[derive(Debug)]
 #[allow(dead_code)]
 // AfriLang lexer
 pub struct Lexer {
@@ -81,9 +83,11 @@ impl Lexer {
     }
 
     // check if characters are valid identifier
-    fn vaild_identifier(&mut self) {
+    fn vaild_identifier(&mut self) -> Token {
+        let mut kind = TokenKind::Identifier;
         let mut identifier = String::from("");
         let mut character = self.peek_char();
+        let start_postion = self.position;
            
         if self.is_bound() && self.identifier_begin_char.contains(character.unwrap()) {
             identifier.push(self.eat_char());
@@ -98,15 +102,47 @@ impl Lexer {
             }
         } 
 
-        println!("{}",identifier);
+        if identifier.len()  < 1 {
+            kind = TokenKind::Unknown;
+        }
 
+        let end_position = self.position;
+
+        Token::new(kind, start_postion, end_position, identifier)
+
+    }
+
+    // check if characters are valid keywords
+    fn valid_keyword(&mut self) -> Token {
+        let mut keywords = String::from("");
+        let mut character = self.peek_char();
+        let mut kind = TokenKind::Keywords;
+        let start_postion = self.position;
+
+        while self.is_bound() && self.identifier_begin_char.contains(character.unwrap()) {
+            keywords.push(self.eat_char());
+            character = self.peek_char();
+        }
+
+        // keyword does not match the language keyword 
+        // revert lexer position and change token kind to unknown
+        if !self.keywords.contains(&keywords) {
+            self.position = start_postion;
+            kind = TokenKind::Unknown;
+        }
+
+        let end_position = self.position;
+        Token::new(kind, start_postion, end_position, keywords)
+
+        
     }
 
 
     pub fn lex(&mut self) {
 
         while self.is_bound() {
-            println!("{:#?}",self.vaild_identifier() );
+
+            println!("{:#?}",self.valid_keyword());
         }
        // println!("{:#?}", self.peek_char());
     }

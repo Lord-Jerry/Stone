@@ -1,19 +1,25 @@
+#[derive(Debug)]
 pub enum TokenKind {
-    Identifier
+    Identifier,
+    Keywords,
+    Unknown,
 }
 
+#[derive(Debug)]
 pub struct Token {
     kind: TokenKind,
-    position: usize,
-    token: Option<String>,
+    start_position: usize,
+    end_position: usize,
+    token: String,
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, position: usize, token: Option<String>) {
-        self {
+    pub fn new(kind: TokenKind, start_position: usize, end_position: usize, token: String) -> Self {
+        Token {
             kind,
-            position,
-            token
+            start_position,
+            end_position,
+            token,
         }
     }
 }
