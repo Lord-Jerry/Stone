@@ -1,16 +1,17 @@
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 pub enum TokenKind {
     Identifier,
     Keywords,
+    Space,
     Unknown,
 }
 
 #[derive(Debug)]
 pub struct Token {
-    kind: TokenKind,
-    start_position: usize,
-    end_position: usize,
-    token: String,
+    pub kind: TokenKind,
+    pub start_position: usize,
+    pub end_position: usize,
+    pub token: String,
 }
 
 impl Token {

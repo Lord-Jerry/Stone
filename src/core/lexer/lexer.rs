@@ -1,9 +1,8 @@
 pub mod kinds;
 use kinds::{ TokenKind, Token };
 
-#[derive(Debug)]
-#[allow(dead_code)]
 // AfriLang lexer
+#[allow(dead_code)]
 pub struct Lexer {
     // source code
     code: Vec<char>,
@@ -137,12 +136,54 @@ impl Lexer {
         
     }
 
+    // check if character is a valid white space
+    fn valid_space(&mut self) -> Token {
+        let mut space = String::from("");
+        let character = self.peek_char();
+        let mut kind = TokenKind::Space;
+        let start_postion = self.position;
+
+        if self.is_bound() && self.space_char.contains(character.unwrap()) {
+            space = self.eat_char().to_string();
+        }
+
+        if space.len() < 1 {
+            kind = TokenKind::Unknown;
+            self.position = start_postion;
+        }
+
+        let end_position = self.position;
+        Token::new(kind, start_postion, end_position, space)
+    }
+
+
+
+    // run all lexer function
+    fn lex_next(&mut self) -> Result<Token, TokenKind> {
+        let identifier = self.vaild_identifier();
+        if identifier.kind != TokenKind::Unknown {
+            return Ok(identifier);
+        }
+
+        let keyword = self.valid_keyword();
+        if keyword.kind != TokenKind::Unknown {
+            return Ok(keyword);
+        }
+
+        let space = self.valid_space();
+        if space.kind != TokenKind::Unknown {
+            return Ok(space);
+        }
+
+        Err(TokenKind::Unknown)
+    }
+
 
     pub fn lex(&mut self) {
 
         while self.is_bound() {
 
-            println!("{:#?}",self.valid_keyword());
+            println!("{:#?}",self.lex_next());
         }
        // println!("{:#?}", self.peek_char());
     }
