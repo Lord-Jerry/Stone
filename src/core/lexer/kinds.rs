@@ -3,6 +3,8 @@ pub enum TokenKind {
     Identifier,
     Keywords,
     Space,
+    Boolean,
+    Operator,
     Unknown,
 }
 

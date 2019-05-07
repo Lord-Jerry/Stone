@@ -2,6 +2,7 @@ pub mod kinds;
 use kinds::{ TokenKind, Token };
 
 // AfriLang lexer
+
 #[allow(dead_code)]
 pub struct Lexer {
     // source code
@@ -67,6 +68,7 @@ impl Lexer {
     // return character in current lexer position
     fn peek_char(&self) -> Option<char> {
 
+        // check if lexer position hasn't exceeded code length
         if self.is_bound() {
             return Some(self.code[self.position]);
         }
@@ -86,13 +88,15 @@ impl Lexer {
         let mut kind = TokenKind::Identifier;
         let mut identifier = String::from("");
         let mut character = self.peek_char();
-        let start_postion = self.position;
+        let start_position = self.position;
            
+        // check if lexer position hasn't exceeded code length and if character is a valid aplhabet
         if self.is_bound() && self.identifier_begin_char.contains(character.unwrap()) {
             identifier.push(self.eat_char());
             // assign new character to character variable 
             character = self.peek_char();
 
+            // check if lexer position hasn't exceeded code length and if character is a valid aplhabetnumeric characeter
             while self.is_bound() && self.identifier_end_char.contains(character.unwrap()) {
                 identifier.push(self.eat_char());
 
@@ -101,73 +105,111 @@ impl Lexer {
             }
         } 
 
+        // if no avaliable valid character assign token kind to unknown 
         if identifier.len()  < 1 {
             kind = TokenKind::Unknown;
         }
 
         let end_position = self.position;
 
-        Token::new(kind, start_postion, end_position, identifier)
+        Token::new(kind, start_position, end_position, identifier)
 
     }
 
-    // check if characters are valid keywords
+    // check if characters are valid keywords or boolean literals
     fn valid_keyword(&mut self) -> Token {
         let mut keywords = String::from("");
         let mut character = self.peek_char();
         let mut kind = TokenKind::Keywords;
-        let start_postion = self.position;
+        let start_position = self.position;
 
+        // check if lexer position hasn't exceeded code length and if character is a valid aplhabet
         while self.is_bound() && self.identifier_begin_char.contains(character.unwrap()) {
             keywords.push(self.eat_char());
             character = self.peek_char();
         }
 
-        // keyword does not match the language keyword 
+        // check if characters are valid boolean literal
+        if keywords == "true".to_string() || keywords == "false".to_string() {
+            kind = TokenKind::Boolean;
+            let end_position = self.position;
+
+            return Token::new(kind, start_position, end_position, keywords);
+        } 
+
+        // if keyword does not match the language keyword 
         // revert lexer position and change token kind to unknown
         if !self.keywords.contains(&keywords) {
-            self.position = start_postion;
+            kind = TokenKind::Unknown;
+            // revert lexer position
+            self.position = start_position;
+        }
+
+        let end_position = self.position;
+        Token::new(kind, start_position, end_position, keywords)
+        
+    }
+
+    // check if characters are valid operator
+    fn valid_operator(&mut self) -> Token {
+        let mut character = self.peek_char();
+        let mut operators = String::from("");
+        let mut kind = TokenKind::Operator;
+        let start_position = self.position;
+
+        while self.is_bound() && self.operator_char.contains(character.unwrap()) {
+            operators.push(self.eat_char());
+            character = self.peek_char();
+        }
+
+        if operators.len() < 1 {
             kind = TokenKind::Unknown;
         }
 
         let end_position = self.position;
-        Token::new(kind, start_postion, end_position, keywords)
+        Token::new(kind, start_position, end_position, operators)
 
-        
     }
+
 
     // check if character is a valid white space
     fn valid_space(&mut self) -> Token {
         let mut space = String::from("");
         let character = self.peek_char();
         let mut kind = TokenKind::Space;
-        let start_postion = self.position;
+        let start_position = self.position;
 
+        // check if lexer position hasn't exceeded code length and if character is valid space character
         if self.is_bound() && self.space_char.contains(character.unwrap()) {
             space = self.eat_char().to_string();
         }
 
+        // if characeter is not a valid space character assign token kind to unknown
         if space.len() < 1 {
             kind = TokenKind::Unknown;
-            self.position = start_postion;
         }
 
         let end_position = self.position;
-        Token::new(kind, start_postion, end_position, space)
+        Token::new(kind, start_position, end_position, space)
     }
 
 
 
     // run all lexer function
     fn lex_next(&mut self) -> Result<Token, TokenKind> {
+        let keyword = self.valid_keyword();
+        if keyword.kind != TokenKind::Unknown {
+            return Ok(keyword);
+        }
+
         let identifier = self.vaild_identifier();
         if identifier.kind != TokenKind::Unknown {
             return Ok(identifier);
         }
 
-        let keyword = self.valid_keyword();
-        if keyword.kind != TokenKind::Unknown {
-            return Ok(keyword);
+        let operator = self.valid_operator();
+        if operator.kind != TokenKind::Unknown {
+            return Ok(operator);
         }
 
         let space = self.valid_space();
