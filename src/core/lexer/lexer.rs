@@ -149,7 +149,6 @@ impl Lexer {
         Token::new(kind, start_position, end_position, keywords)
         
     }
-
     // check if characters are valid operator
     fn valid_operator(&mut self) -> Token {
         let mut character = self.peek_char();
@@ -171,17 +170,38 @@ impl Lexer {
 
     }
 
+    // check if characeter is an identified separator
+    fn valid_separator(&mut self) -> Token {
+        let mut separator = String::from("");
+        let character = self.peek_char();
+        let mut kind = TokenKind::Separator;
+        let start_position = self.position;
+
+        if self.is_bound() && self.separator_char.contains(character.unwrap()) {
+            separator.push(self.eat_char());
+        }
+
+        if separator.len() < 1 {
+            kind = TokenKind::Unknown;
+        }
+
+        let end_position = self.position;
+        Token::new(kind, start_position, end_position, separator)
+
+    }
+
 
     // check if character is a valid white space
     fn valid_space(&mut self) -> Token {
         let mut space = String::from("");
-        let character = self.peek_char();
+        let mut character = self.peek_char();
         let mut kind = TokenKind::Space;
         let start_position = self.position;
 
         // check if lexer position hasn't exceeded code length and if character is valid space character
-        if self.is_bound() && self.space_char.contains(character.unwrap()) {
-            space = self.eat_char().to_string();
+        while self.is_bound() && self.space_char.contains(character.unwrap()) {
+            space.push(self.eat_char());
+            character = self.peek_char();
         }
 
         // if characeter is not a valid space character assign token kind to unknown
@@ -196,7 +216,7 @@ impl Lexer {
 
 
     // run all lexer function
-    fn lex_next(&mut self) -> Result<Token, TokenKind> {
+    fn lex_next(&mut self) -> Result<Token, Token> {
         let keyword = self.valid_keyword();
         if keyword.kind != TokenKind::Unknown {
             return Ok(keyword);
@@ -212,13 +232,18 @@ impl Lexer {
             return Ok(operator);
         }
 
+        let separator = self.valid_separator();
+        if separator.kind != TokenKind::Unknown {
+            return Ok(separator);
+        }
+
         let space = self.valid_space();
         if space.kind != TokenKind::Unknown {
             return Ok(space);
         }
 
-        Err(TokenKind::Unknown)
-    }
+        Err(Token::new(TokenKind::Unknown, self.position, self.position + 1, self.eat_char().to_string()))
+     }
 
 
     pub fn lex(&mut self) {

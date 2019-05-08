@@ -5,6 +5,7 @@ pub enum TokenKind {
     Space,
     Boolean,
     Operator,
+    Separator,
     Unknown,
 }
 
