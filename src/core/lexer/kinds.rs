@@ -6,6 +6,7 @@ pub enum TokenKind {
     Boolean,
     Operator,
     Separator,
+    SingleLineComment,
     Unknown,
 }
 

@@ -213,6 +213,26 @@ impl Lexer {
         Token::new(kind, start_position, end_position, space)
     }
 
+    // check single line comment
+    fn valid_single_line_comment(&mut self) -> Token {
+        let character = self.peek_char();
+        let mut comment = String::new();
+        let mut kind = TokenKind::Unknown;
+        let start_position = self.position;
+
+        if character.unwrap() == '#' {
+            comment.push(self.eat_char());
+
+            while self.is_bound() && comment.len() > 0 && self.peek_char().unwrap() != '\n' {
+                comment.push(self.eat_char());
+            }
+            kind = TokenKind::SingleLineComment;
+        }
+
+        let end_position = self.position;
+        Token::new(kind, start_position, end_position, comment )
+    }
+
 
 
     // run all lexer function
@@ -240,6 +260,11 @@ impl Lexer {
         let space = self.valid_space();
         if space.kind != TokenKind::Unknown {
             return Ok(space);
+        }
+
+        let comment = self.valid_single_line_comment();
+        if comment.kind != TokenKind::Unknown {
+            return Ok(comment);
         }
 
         Err(Token::new(TokenKind::Unknown, self.position, self.position + 1, self.eat_char().to_string()))
