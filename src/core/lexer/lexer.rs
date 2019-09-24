@@ -76,6 +76,13 @@ impl Lexer {
         None
     }
 
+    // if error occurs while lexing we would want to revert lexer position to position before error
+    // this method those that
+    fn revert(&mut self, position: usize) {
+        self.position = position;
+        self.column = position;
+    }
+
     // return current character in lexer position and increment position
     fn eat_char(&mut self) -> char {
         self.position += 1;
@@ -142,7 +149,7 @@ impl Lexer {
         if !self.keywords.contains(&keywords) {
             kind = TokenKind::Unknown;
             // revert lexer position
-            self.position = start_position;
+            self.revert(start_position);
         }
 
         let end_position = self.position;
